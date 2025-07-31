@@ -7,14 +7,10 @@
     <!-- score board - TODO rounds -->
     <ScoreBoard
       :leftTeam="
-        (match?.expand as any)?.[`team_${sides.left}`]
-          ?.map((p: UserDto) => p.name)
-          .join(' ')
+        match?.expand.team_black?.map((p: UserDto) => p.name).join(' ')
       "
       :rightTeam="
-        (match?.expand as any)?.[`team_${sides.right}`]
-          ?.map((p: UserDto) => p.name)
-          .join(' ')
+        match?.expand.team_blue?.map((p: UserDto) => p.name).join(' ')
       "
       :leftTeamScore="(round as any)?.[`${sides.left}_score`]"
       :rightTeamScore="(round as any)?.[`${sides.right}_score`]"
@@ -74,7 +70,7 @@
     <!-- actions footer -->
     <div class="mt-auto px-4 py-6">
       <GameActions
-        :continueLabel="hasStarted ? 'Next' : 'Start'"
+        :continueLabel="roundStarted ? 'Next' : 'Start'"
         @next="handleNextButton"
       />
     </div>
@@ -99,7 +95,9 @@ const match: Ref<MatchDto | null> = ref(null);
 
 onMounted(async () => {
   if (!pb.authStore.record?.id)
-    await pb.collection("users").authWithPassword("alice@example.com", "kicker1337");
+    await pb
+      .collection("users")
+      .authWithPassword("alice@example.com", "kicker1337");
 
   match.value = await pb
     .collection("match")
@@ -122,8 +120,17 @@ onUnmounted(() => {
 const round = computed(() => match.value?.game_data.rounds.at(-1));
 const roundIndex = computed(() => match.value?.game_data.rounds.length);
 const players = computed(() => Object.values(match.value?.expand || {}).flat());
-const hasStarted = computed(() => !!round.value?.start);
-const isOver = computed(() => !!round.value?.end);
+const roundStarted = computed(() => !!round.value?.start);
+const roundOver = computed(() => !!round.value?.end);
+const matchOver = computed(
+  () =>
+    match.value?.team_black_score === 15 ||
+    match.value?.team_blue_score === 15 ||
+    (match.value?.game_data.rounds[0]?.blue_score === 5 &&
+      match.value?.game_data.rounds[1]?.black_score === 5 && match.value?.team_blue_score === 10) ||
+    (match.value?.game_data.rounds[0]?.black_score === 5 &&
+      match.value?.game_data.rounds[1]?.blue_score === 5 && match.value?.team_black_score === 10),
+);
 // black is left on games 1 & 3
 const sides = computed<{ left: "blue" | "black"; right: "blue" | "black" }>(
   () =>
@@ -138,11 +145,11 @@ async function handleGoal(event: {
   role: "attacker" | "keeper";
 }) {
   if (!match.value || !round.value) return;
-  if (isOver.value) {
+  if (roundOver.value) {
     console.log("round over");
     return;
   }
-  if (hasStarted.value) {
+  if (roundStarted.value) {
     const newScores =
       event.color === "blue"
         ? {
@@ -166,7 +173,6 @@ async function handleGoal(event: {
         action: "goal",
       }),
       pb.collection("match").update(props.matchId, {
-        ...match.value,
         game_data: {
           rounds: [
             ...match.value.game_data.rounds.slice(0, -1),
@@ -184,13 +190,13 @@ async function handleGoal(event: {
 }
 
 async function handleNextButton() {
-  console.log(round.value);
-  console.log(isOver.value);
-  console.log(hasStarted.value);
   if (!match.value || !round.value) return;
-  if (!hasStarted.value) {
+  if (matchOver.value) {
+    console.log("match over!")
+    return;
+  }
+  if (!roundStarted.value) {
     await pb.collection("match").update(props.matchId, {
-      ...match.value,
       game_data: {
         rounds: [
           ...match.value.game_data.rounds.slice(0, -1),
@@ -203,24 +209,37 @@ async function handleNextButton() {
         ],
       },
     });
-  } else if (!isOver.value) {
+    return;
+  }
+  if (!roundOver.value) {
     console.log("finish round first");
     return;
-  } else {
-    await pb.collection("match").update(props.matchId, {
-      ...match.value,
-      game_data: {
-        rounds: [
-          ...match.value.game_data.rounds,
-          {
-            blue_attacker: round.value.black_keeper,
-            black_attacker: round.value.blue_keeper,
-            blue_keeper: round.value.black_attacker,
-            black_keeper: round.value.blue_attacker,
-          },
-        ],
-      },
-    });
   }
+  const team_black_score =
+    match.value.team_black_score +
+    (roundIndex.value === 2
+      ? round.value.blue_score!
+      : round.value.black_score!);
+  const team_blue_score =
+    match.value.team_blue_score +
+    (roundIndex.value === 2
+      ? round.value.black_score!
+      : round.value.blue_score!);
+
+  await pb.collection("match").update(props.matchId, {
+    team_black_score,
+    team_blue_score,
+    game_data: {
+      rounds: [
+        ...match.value.game_data.rounds,
+        {
+          blue_attacker: round.value.black_keeper,
+          black_attacker: round.value.blue_keeper,
+          blue_keeper: round.value.black_attacker,
+          black_keeper: round.value.blue_attacker,
+        },
+      ],
+    },
+  });
 }
 </script>

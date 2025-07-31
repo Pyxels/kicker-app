@@ -19,7 +19,7 @@
       <div>
         <label class="block mb-1 font-semibold">Blue Attacker</label>
         <select
-          v-model="selected.black_attacker"
+          v-model="selected.blue_attacker"
           class="w-full p-2 border rounded"
         >
           <option :value="null" disabled>Select player</option>
@@ -32,7 +32,7 @@
       <div>
         <label class="block mb-1 font-semibold">Black Attacker</label>
         <select
-          v-model="selected.blue_attacker"
+          v-model="selected.black_attacker"
           class="w-full p-2 border rounded"
         >
           <option :value="null" disabled>Select player</option>
@@ -110,8 +110,8 @@ const isComplete = computed(() => {
 async function submitSelection() {
   const newMatchId = (
     await pb.collection("match").create({
-      team1: [selected.value.black_keeper, selected.value.black_attacker],
-      team2: [selected.value.blue_keeper, selected.value.blue_attacker],
+      team_black: [selected.value.black_keeper, selected.value.black_attacker],
+      team_blue: [selected.value.blue_keeper, selected.value.blue_attacker],
       team1_score: 0,
       team2_score: 0,
       game_data: {

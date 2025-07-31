@@ -11,10 +11,14 @@ export const matchFetchOptions = {
 };
 
 export interface MatchDto {
+  /** initial team colors */
   expand: { team_black: UserDto[]; team_blue: UserDto[] };
+  /** initial team colors */
   team_black_score: number;
+  /** initial team colors */
   team_blue_score: number;
   game_data: {
+    /** dynamic team colors */
     rounds: {
       blue_attacker: string;
       black_attacker: string;
