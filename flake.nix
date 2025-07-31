@@ -12,6 +12,7 @@
         nodejs_24
 
         just
+        sqlite
       ];
     };
   };

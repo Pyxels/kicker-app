@@ -93,7 +93,7 @@ onMounted(async () => {
   if (!pb.authStore.record?.id)
     await pb
       .collection("users")
-      .authWithPassword("j@e.c", "kicker1337");
+      .authWithPassword("alice@example.com", "kicker1337");
 
   users.value = await pb
     .collection("users")

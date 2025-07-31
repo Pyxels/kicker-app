@@ -99,7 +99,7 @@ const match: Ref<MatchDto | null> = ref(null);
 
 onMounted(async () => {
   if (!pb.authStore.record?.id)
-    await pb.collection("users").authWithPassword("j@e.c", "kicker1337");
+    await pb.collection("users").authWithPassword("alice@example.com", "kicker1337");
 
   match.value = await pb
     .collection("match")
