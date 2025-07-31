@@ -11,7 +11,7 @@ Game and statistics tracker for our kicker games.
 
 ## Development
 
-See issues for current roadmap.
+See [project board](https://github.com/users/Pyxels/projects/1) for current roadmap and milestones.
 
 ```bash
 nix develop # fetch dependencies
