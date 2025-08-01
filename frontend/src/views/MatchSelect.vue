@@ -4,19 +4,6 @@
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-2xl">
       <div>
-        <label class="block mb-1 font-semibold">Black Keeper</label>
-        <select
-          v-model="selected.black_keeper"
-          class="w-full p-2 border rounded"
-        >
-          <option :value="null" disabled>Select player</option>
-          <option v-for="user in users" :key="user.id" :value="user.id">
-            {{ user.name }}
-          </option>
-        </select>
-      </div>
-
-      <div>
         <label class="block mb-1 font-semibold">Blue Attacker</label>
         <select
           v-model="selected.blue_attacker"
@@ -30,9 +17,9 @@
       </div>
 
       <div>
-        <label class="block mb-1 font-semibold">Black Attacker</label>
+        <label class="block mb-1 font-semibold">Blue Keeper</label>
         <select
-          v-model="selected.black_attacker"
+          v-model="selected.blue_keeper"
           class="w-full p-2 border rounded"
         >
           <option :value="null" disabled>Select player</option>
@@ -43,9 +30,22 @@
       </div>
 
       <div>
-        <label class="block mb-1 font-semibold">Blue Keeper</label>
+        <label class="block mb-1 font-semibold">Black Keeper</label>
         <select
-          v-model="selected.blue_keeper"
+          v-model="selected.black_keeper"
+          class="w-full p-2 border rounded"
+        >
+          <option :value="null" disabled>Select player</option>
+          <option v-for="user in users" :key="user.id" :value="user.id">
+            {{ user.name }}
+          </option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block mb-1 font-semibold">Black Attacker</label>
+        <select
+          v-model="selected.black_attacker"
           class="w-full p-2 border rounded"
         >
           <option :value="null" disabled>Select player</option>
@@ -110,15 +110,24 @@ const isComplete = computed(() => {
 async function submitSelection() {
   const newMatchId = (
     await pb.collection("match").create({
-      team_black: [selected.value.black_keeper, selected.value.black_attacker],
-      team_blue: [selected.value.blue_keeper, selected.value.blue_attacker],
+      team1: [selected.value.black_attacker, selected.value.black_keeper],
+      team2: [selected.value.blue_keeper, selected.value.blue_attacker],
       team1_score: 0,
       team2_score: 0,
-      game_data: {
-        rounds: [{
-          ...selected.value,
-        }],
-      },
+      rounds: [
+        {
+          black: {
+            attacker: selected.value.black_attacker,
+            keeper: selected.value.black_keeper,
+            score: 0,
+          },
+          blue: {
+            attacker: selected.value.blue_attacker,
+            keeper: selected.value.blue_keeper,
+            score: 0,
+          },
+        },
+      ],
     })
   ).id;
   if (newMatchId) router.push(`/match/${newMatchId}`);

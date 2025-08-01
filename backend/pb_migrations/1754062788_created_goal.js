@@ -2,7 +2,7 @@
 migrate((app) => {
   const collection = new Collection({
     "createRule": "@request.auth.id != \"\"",
-    "deleteRule": "@request.auth.id = player.id",
+    "deleteRule": "@request.auth.id = user.id",
     "fields": [
       {
         "autogeneratePattern": "[a-z0-9]{15}",
@@ -19,7 +19,7 @@ migrate((app) => {
         "type": "text"
       },
       {
-        "cascadeDelete": true,
+        "cascadeDelete": false,
         "collectionId": "pbc_2971499502",
         "hidden": false,
         "id": "relation2052834565",
@@ -35,10 +35,10 @@ migrate((app) => {
         "cascadeDelete": false,
         "collectionId": "_pb_users_auth_",
         "hidden": false,
-        "id": "relation2551806565",
+        "id": "relation2375276105",
         "maxSelect": 1,
         "minSelect": 0,
-        "name": "player",
+        "name": "user",
         "presentable": false,
         "required": true,
         "system": false,
@@ -112,7 +112,7 @@ migrate((app) => {
     "name": "goal",
     "system": false,
     "type": "base",
-    "updateRule": "@request.auth.id = player.id",
+    "updateRule": "@request.auth.id = user.id",
     "viewRule": "@request.auth.id != \"\""
   });
 

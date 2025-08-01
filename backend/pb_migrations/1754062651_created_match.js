@@ -62,7 +62,7 @@ migrate((app) => {
         "max": 15,
         "min": 0,
         "name": "team2_score",
-        "onlyInt": true,
+        "onlyInt": false,
         "presentable": false,
         "required": false,
         "system": false,
@@ -70,9 +70,29 @@ migrate((app) => {
       },
       {
         "hidden": false,
-        "id": "json1189519183",
+        "id": "json2729309672",
         "maxSize": 0,
-        "name": "game_data",
+        "name": "round1",
+        "presentable": false,
+        "required": false,
+        "system": false,
+        "type": "json"
+      },
+      {
+        "hidden": false,
+        "id": "json1000645714",
+        "maxSize": 0,
+        "name": "round2",
+        "presentable": false,
+        "required": false,
+        "system": false,
+        "type": "json"
+      },
+      {
+        "hidden": false,
+        "id": "json1285788868",
+        "maxSize": 0,
+        "name": "round3",
         "presentable": false,
         "required": false,
         "system": false,
@@ -127,7 +147,7 @@ migrate((app) => {
     "name": "match",
     "system": false,
     "type": "base",
-    "updateRule": "@request.auth.id ?= team1 || @request.auth.id ?= team2",
+    "updateRule": "@request.auth.id ?= team1.id || @request.auth.id ?= team2.id",
     "viewRule": "@request.auth.id != \"\""
   });
 

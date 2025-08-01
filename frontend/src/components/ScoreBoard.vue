@@ -1,16 +1,28 @@
 <template>
   <div
-    class="bg-white rounded-xl shadow-md px-6 py-4 text-center w-full max-w-xs border border-gray-200"
+    class="bg-white rounded-xl shadow-md px-6 py-4 text-center w-full max-w-100 border border-gray-200"
   >
     <!-- score numbers -->
     <div
       class="flex items-center justify-center text-4xl font-bold text-gray-900 space-x-4"
     >
-      <span :class="leftTeamColor">
-        {{ leftTeamScore }}
-      </span>
+      <div class="flex flex-col items-center">
+        <span :class="leftTeamColor">{{ leftTeamScore }}</span>
+        <span class="text-xs text-gray-500">({{ leftTeamScoreTotal }})</span>
+      </div>
       <span>:</span>
-      <span :class="rightTeamColor">{{ rightTeamScore }}</span>
+      <div class="flex flex-col items-center">
+        <span :class="rightTeamColor">{{ rightTeamScore }}</span>
+        <span class="text-xs text-gray-500">({{ rightTeamScoreTotal }})</span>
+      </div>
+    </div>
+
+    <!-- timer display -->
+    <div
+      class="mt-1 text-sm text-gray-500 font-mono flex items-center justify-center gap-1"
+    >
+      <ClockIcon class="w-4 h-4" />
+      {{ elapsedFormatted || '-:-' }}
     </div>
 
     <!-- player names -->
@@ -50,22 +62,37 @@
 </template>
 
 <script lang="ts" setup>
-import { computed } from "vue";
+import { ref, computed, onMounted, onUnmounted } from "vue";
+import { ClockIcon } from "@heroicons/vue/24/outline";
 
 const props = defineProps<{
   leftTeam: string | undefined;
   rightTeam: string | undefined;
   leftTeamScore: number | undefined;
+  leftTeamScoreTotal: number | undefined;
   rightTeamScore: number | undefined;
-  rounds: ("l" | "r")[];
+  rightTeamScoreTotal: number | undefined;
+  roundStart: string | undefined;
+  roundEnd: string | undefined;
+  rounds: any[]; // TODO later
 }>();
 
+const now = ref(Date.now());
+
+let interval: number;
+
+onMounted(() => {
+  interval = window.setInterval(() => {
+    now.value = Date.now();
+  }, 1000);
+});
+
+onUnmounted(() => {
+  clearInterval(interval);
+});
+
 const leftTeamColor = computed(() => {
-  if (
-    props?.leftTeamScore === 0 &&
-    props?.rightTeamScore !== 0 &&
-    !props?.rounds?.includes("l")
-  )
+  if (props?.leftTeamScore === 0 && props?.leftTeamScoreTotal === 0)
     return "text-red-500";
   if ((props?.leftTeamScore || 0) > (props?.rightTeamScore || 0))
     return "text-green-500";
@@ -73,14 +100,27 @@ const leftTeamColor = computed(() => {
 });
 
 const rightTeamColor = computed(() => {
-  if (
-    props?.rightTeamScore === 0 &&
-    props?.leftTeamScore !== 0 &&
-    !props?.rounds?.includes("r")
-  )
+  if (props?.rightTeamScore === 0 && props?.rightTeamScoreTotal === 0)
     return "text-red-500";
   if ((props?.rightTeamScore || 0) > (props?.leftTeamScore || 0))
     return "text-green-500";
   return "text-gray-800";
+});
+
+const elapsedFormatted = computed(() => {
+  if (!props.roundStart) return null;
+
+  const start = new Date(props.roundStart).getTime();
+  const end = props.roundEnd ? new Date(props.roundEnd).getTime() : now.value;
+
+  if (isNaN(start) || isNaN(end) || end < start) return null;
+
+  const elapsedSeconds = Math.floor((end - start) / 1000);
+  const minutes = Math.floor(elapsedSeconds / 60)
+    .toString()
+    .padStart(2, "0");
+  const seconds = (elapsedSeconds % 60).toString().padStart(2, "0");
+
+  return `${minutes}:${seconds}`;
 });
 </script>

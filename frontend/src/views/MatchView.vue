@@ -1,97 +1,139 @@
 <template>
   <div class="min-h-screen flex flex-col items-center px-4 py-6 space-y-6">
     <h1 class="text-2xl font-bold">
-      Round {{ match?.game_data.rounds.length || "Setup" }}
+      Round {{ match?.rounds.length || "Setup" }}
     </h1>
 
     <!-- score board - TODO rounds -->
     <ScoreBoard
       :leftTeam="
-        match?.expand.team_black?.map((p: UserDto) => p.name).join(' ')
+        match?.expand[bottomTeam.name].map((p: UserDto) => p.name).join(' ')
       "
       :rightTeam="
-        match?.expand.team_blue?.map((p: UserDto) => p.name).join(' ')
+        match?.expand[topTeam.name].map((p: UserDto) => p.name).join(' ')
       "
-      :leftTeamScore="(round as any)?.[`${sides.left}_score`]"
-      :rightTeamScore="(round as any)?.[`${sides.right}_score`]"
+      :leftTeamScore="currentRound?.[bottomTeam.color].score"
+      :rightTeamScore="currentRound?.[topTeam.color].score"
+      :leftTeamScoreTotal="match?.[`${bottomTeam.name}_score`]"
+      :rightTeamScoreTotal="match?.[`${topTeam.name}_score`]"
+      :roundStart="currentRound?.start"
+      :roundEnd="currentRound?.end"
       :rounds="[]"
     />
 
     <!-- player rows -->
     <div class="w-full flex flex-row gap-4 justify-center">
       <PlayerCard
-        :user="
-          players?.find(
-            (p) => p.id === (round as any)?.[`${sides.left}_keeper`],
-          )
-        "
-        :color="sides.left"
-        role="keeper"
-        border="l"
-        @goal="handleGoal"
+        :user="playersMap[currentRound?.[topTeam.color].attacker || 'noop']"
+        :color="topTeam.color"
+        role="attacker"
+        border="u"
+        @event="handleGoal"
       />
       <PlayerCard
-        :user="
-          players?.find(
-            (p) => p.id === (round as any)?.[`${sides.right}_attacker`],
-          )
-        "
-        :color="sides.right"
-        role="attacker"
-        border="r"
-        @goal="handleGoal"
+        :user="playersMap[currentRound?.[topTeam.color].keeper || 'noop']"
+        :color="topTeam.color"
+        role="keeper"
+        border="u"
+        @event="handleGoal"
       />
     </div>
     <div class="w-full flex flex-row gap-4 justify-center">
       <PlayerCard
-        :user="
-          players?.find(
-            (p) => p.id === (round as any)?.[`${sides.left}_attacker`],
-          )
-        "
-        :color="sides.left"
-        role="attacker"
-        border="l"
-        @goal="handleGoal"
+        :user="playersMap[currentRound?.[bottomTeam.color].keeper || 'noop']"
+        :color="bottomTeam.color"
+        role="keeper"
+        border="d"
+        @event="handleGoal"
       />
       <PlayerCard
-        :user="
-          players?.find(
-            (p) => p.id === (round as any)?.[`${sides.right}_keeper`],
-          )
-        "
-        :color="sides.right"
-        role="keeper"
-        border="r"
-        @goal="handleGoal"
+        :user="playersMap[currentRound?.[bottomTeam.color].attacker || 'noop']"
+        :color="bottomTeam.color"
+        role="attacker"
+        border="d"
+        @event="handleGoal"
       />
     </div>
 
     <!-- actions footer -->
     <div class="mt-auto px-4 py-6">
-      <GameActions
-        :continueLabel="roundStarted ? 'Next' : 'Start'"
-        @next="handleNextButton"
-      />
+      <GameActions :match="match" @next="handleNextButton" />
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { ref, onMounted, onUnmounted, Ref, computed } from "vue";
+import { useRouter } from "vue-router";
 import PocketBase, { RecordSubscription } from "pocketbase";
 
 import PlayerCard from "@/components/PlayerCard.vue";
 import ScoreBoard from "@/components/ScoreBoard.vue";
 import GameActions from "@/components/GameActions.vue";
 
-import { MatchDto, matchFetchOptions, UserDto } from "@/dto/match.dto";
+import {
+  Action,
+  MatchDto,
+  matchFetchOptions,
+  Role,
+  TeamColor,
+  UserDto,
+} from "@/dto/match.dto";
 
 const props = defineProps<{ matchId: string }>();
 
+const router = useRouter();
 const pb = new PocketBase("http://127.0.0.1:8090");
 
 const match: Ref<MatchDto | null> = ref(null);
+
+const playersMap = computed<Record<string, UserDto>>(() =>
+  Object.values(match.value?.expand || {})
+    .flat()
+    .reduce((acc, user) => ({ ...acc, [user.id]: user }), {}),
+);
+const currentRound = computed(() => match.value?.rounds?.at(-1));
+const userInMatch = computed(
+  () =>
+    match.value?.team1.includes(pb.authStore.record?.id || "not") ||
+    match.value?.team2.includes(pb.authStore.record?.id || "not") ||
+    false,
+);
+const bottomTeam = computed<{ color: TeamColor; name: "team1" | "team2" }>(
+  () => {
+    if (!currentRound.value || !match.value)
+      return { color: "black", name: "team1" };
+    if (!userInMatch.value)
+      return {
+        color: match.value.rounds.length % 2 === 0 ? "blue" : "black",
+        name: match.value.rounds.length % 2 === 0 ? "team2" : "team1",
+      };
+    return {
+      color:
+        currentRound.value.black.attacker === pb.authStore.record?.id ||
+        currentRound.value.black.keeper === pb.authStore.record?.id
+          ? "black"
+          : "blue",
+      name: match.value.team1.includes(pb.authStore.record?.id || "noop")
+        ? "team1"
+        : "team2",
+    };
+  },
+);
+const topTeam = computed<{ color: TeamColor; name: "team1" | "team2" }>(() => ({
+  color: bottomTeam.value.color === "black" ? "blue" : "black",
+  name: bottomTeam.value.name === "team2" ? "team1" : "team2",
+}));
+const matchOver = computed(() => {
+  let t1 = 0;
+  let t2 = 0;
+  return match.value?.rounds.some((r, i) => {
+    const t1Score = i % 2 === 0 ? r.blue.score : r.black.score;
+    const t2Score = i % 2 === 0 ? r.black.score : r.blue.score;
+    t1Score > t2Score ? t1++ : t2++;
+    return t1 === 2 || t2 === 2;
+  });
+});
 
 onMounted(async () => {
   if (!pb.authStore.record?.id)
@@ -106,7 +148,7 @@ onMounted(async () => {
   pb.collection("match").subscribe(
     props.matchId,
     (e: RecordSubscription<MatchDto>) => {
-      console.log(`update for match ${props.matchId}`);
+      console.debug(`action '${e.action}' for match ${props.matchId}`);
       match.value = e.record;
     },
     matchFetchOptions,
@@ -117,129 +159,99 @@ onUnmounted(() => {
   pb.collection("match").unsubscribe();
 });
 
-const round = computed(() => match.value?.game_data.rounds.at(-1));
-const roundIndex = computed(() => match.value?.game_data.rounds.length);
-const players = computed(() => Object.values(match.value?.expand || {}).flat());
-const roundStarted = computed(() => !!round.value?.start);
-const roundOver = computed(() => !!round.value?.end);
-const matchOver = computed(
-  () =>
-    match.value?.team_black_score === 15 ||
-    match.value?.team_blue_score === 15 ||
-    (match.value?.game_data.rounds[0]?.blue_score === 5 &&
-      match.value?.game_data.rounds[1]?.black_score === 5 && match.value?.team_blue_score === 10) ||
-    (match.value?.game_data.rounds[0]?.black_score === 5 &&
-      match.value?.game_data.rounds[1]?.blue_score === 5 && match.value?.team_black_score === 10),
-);
-// black is left on games 1 & 3
-const sides = computed<{ left: "blue" | "black"; right: "blue" | "black" }>(
-  () =>
-    roundIndex.value === 2
-      ? { left: "blue", right: "black" }
-      : { left: "black", right: "blue" },
-);
-
 async function handleGoal(event: {
   id: string;
-  color: "blue" | "black";
-  role: "attacker" | "keeper";
+  color: TeamColor;
+  role: Role;
+  action: Action;
 }) {
-  if (!match.value || !round.value) return;
-  if (roundOver.value) {
-    console.log("round over");
+  if (!currentRound.value || !match.value) return;
+  if (!currentRound.value.start) {
+    console.debug(`round ${match.value.rounds.length} has not started yet`);
     return;
   }
-  if (roundStarted.value) {
-    const newScores =
-      event.color === "blue"
-        ? {
-            blue_score: (round.value.blue_score || 0) + 1,
-            black_score: round.value.black_score,
-          }
-        : {
-            black_score: (round.value.black_score || 0) + 1,
-            blue_score: round.value.blue_score,
-          };
-    const end =
-      newScores.blue_score! >= 5 || newScores.black_score! >= 5
-        ? new Date()
-        : undefined;
-    await Promise.all([
-      pb.collection("goal").create({
-        match: props.matchId,
-        player: event.id,
-        team: event.color,
-        role: event.role,
-        action: "goal",
-      }),
-      pb.collection("match").update(props.matchId, {
-        game_data: {
-          rounds: [
-            ...match.value.game_data.rounds.slice(0, -1),
-            {
-              ...match.value.game_data.rounds.at(-1),
-              ...newScores,
-              start: new Date(),
-              end,
-            },
-          ],
-        },
-      }),
-    ]);
+  if (!!currentRound.value.end) {
+    console.debug(`round ${match.value.rounds.length} is already over`);
+    return;
   }
+
+  const newScore = currentRound.value[event.color].score + 1;
+  const end = newScore === 5 ? new Date() : undefined;
+  const isTeam1 = match.value.team1.includes(event.id);
+  const team1_score = isTeam1
+    ? match.value.team1_score + 1
+    : match.value.team1_score;
+  const team2_score = isTeam1
+    ? match.value.team2_score
+    : match.value.team2_score + 1;
+
+  await pb.collection("match").update(props.matchId, {
+    team1_score,
+    team2_score,
+    rounds: [
+      ...match.value.rounds.slice(0, -1),
+      {
+        ...currentRound.value,
+        [event.color]: {
+          ...currentRound.value[event.color],
+          score: newScore,
+        },
+        end,
+      },
+    ],
+  } as Partial<MatchDto>);
+
+  await pb.collection("goal").create({
+    match: props.matchId,
+    user: event.id,
+    team: event.color,
+    role: event.role,
+    action: event.action,
+  });
 }
 
 async function handleNextButton() {
-  if (!match.value || !round.value) return;
-  if (matchOver.value) {
-    console.log("match over!")
-    return;
-  }
-  if (!roundStarted.value) {
+  if (!currentRound.value || !match.value) return;
+
+  if (!currentRound.value.start) {
+    console.debug(`start round ${match.value.rounds.length}`);
     await pb.collection("match").update(props.matchId, {
-      game_data: {
-        rounds: [
-          ...match.value.game_data.rounds.slice(0, -1),
-          {
-            ...match.value.game_data.rounds.at(-1),
-            blue_score: 0,
-            black_score: 0,
-            start: new Date(),
-          },
-        ],
-      },
+      rounds: [
+        ...match.value.rounds.slice(0, -1),
+        {
+          ...currentRound.value,
+          start: new Date(),
+        },
+      ],
     });
     return;
   }
-  if (!roundOver.value) {
-    console.log("finish round first");
+
+  if (matchOver.value) {
+    console.debug(`match ${props.matchId} over`);
+    router.push(`/match/`);
     return;
   }
-  const team_black_score =
-    match.value.team_black_score +
-    (roundIndex.value === 2
-      ? round.value.blue_score!
-      : round.value.black_score!);
-  const team_blue_score =
-    match.value.team_blue_score +
-    (roundIndex.value === 2
-      ? round.value.black_score!
-      : round.value.blue_score!);
 
-  await pb.collection("match").update(props.matchId, {
-    team_black_score,
-    team_blue_score,
-    game_data: {
+  if (currentRound.value.end) {
+    console.debug(`init round ${match.value.rounds.length + 1}`);
+    pb.collection("match").update(props.matchId, {
       rounds: [
-        ...match.value.game_data.rounds,
+        ...match.value.rounds,
         {
-          blue_attacker: round.value.black_keeper,
-          black_attacker: round.value.blue_keeper,
-          blue_keeper: round.value.black_attacker,
-          black_keeper: round.value.blue_attacker,
+          black: {
+            attacker: currentRound.value.blue.keeper,
+            keeper: currentRound.value.blue.attacker,
+            score: 0,
+          },
+          blue: {
+            attacker: currentRound.value.black.keeper,
+            keeper: currentRound.value.black.attacker,
+            score: 0,
+          },
         },
       ],
-    },
-  });
+    });
+  }
 }
 </script>
