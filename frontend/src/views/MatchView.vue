@@ -72,6 +72,7 @@ import GameActions from "@/components/GameActions.vue";
 
 import {
   Action,
+  isMatchOver,
   MatchDto,
   matchFetchOptions,
   Role,
@@ -122,16 +123,7 @@ const topTeam = computed<{ color: TeamColor; name: "team1" | "team2" }>(() => ({
   color: bottomTeam.value.color === "black" ? "blue" : "black",
   name: bottomTeam.value.name === "team2" ? "team1" : "team2",
 }));
-const matchOver = computed(() => {
-  let t1 = 0;
-  let t2 = 0;
-  return match.value?.rounds.some((r, i) => {
-    const t1Score = i % 2 === 0 ? r.blue.score : r.black.score;
-    const t2Score = i % 2 === 0 ? r.black.score : r.blue.score;
-    t1Score > t2Score ? t1++ : t2++;
-    return t1 === 2 || t2 === 2;
-  });
-});
+const matchOver = computed(() => isMatchOver(match.value));
 
 onMounted(async () => {
   match.value =
@@ -170,7 +162,7 @@ async function handleGoal(event: {
   }
 
   const newScore = currentRound.value[event.color].score + 1;
-  const end = newScore === 5 ? new Date() : undefined;
+  const end = newScore === 5 ? new Date().toISOString() : undefined;
   const isTeam1 = match.value.team1.includes(event.id);
   const team1_score = isTeam1
     ? match.value.team1_score + 1
@@ -178,23 +170,27 @@ async function handleGoal(event: {
   const team2_score = isTeam1
     ? match.value.team2_score
     : match.value.team2_score + 1;
+  const newMatch = {
+    team1_score,
+    team2_score,
+    rounds: [
+      ...match.value!.rounds.slice(0, -1),
+      {
+        ...currentRound.value,
+        [event.color]: {
+          ...currentRound.value![event.color],
+          score: newScore,
+        },
+        end,
+      },
+    ],
+  };
 
   await safe(() =>
     pb.collection("match").update(props.matchId, {
-      team1_score,
-      team2_score,
-      rounds: [
-        ...match.value!.rounds.slice(0, -1),
-        {
-          ...currentRound.value,
-          [event.color]: {
-            ...currentRound.value![event.color],
-            score: newScore,
-          },
-          end,
-        },
-      ],
-    } as Partial<MatchDto>),
+      ...newMatch,
+      end: isMatchOver(newMatch) ? new Date() : undefined,
+    }),
   );
 
   await safe(() =>
@@ -215,6 +211,7 @@ async function handleNextButton() {
     console.debug(`start round ${match.value.rounds.length}`);
     await safe(() =>
       pb.collection("match").update(props.matchId, {
+        start: match.value!.start ?? new Date(),
         rounds: [
           ...match.value!.rounds.slice(0, -1),
           {
@@ -229,7 +226,7 @@ async function handleNextButton() {
 
   if (matchOver.value) {
     console.debug(`match ${props.matchId} over`);
-    router.push(`/match/`);
+    router.push(`/`);
     return;
   }
 
