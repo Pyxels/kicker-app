@@ -22,6 +22,9 @@
       ];
       inherit (inputs.self.checks.${system}.git-hooks) shellHook;
     };
-    checks.${system}.git-hooks = import ./git-hooks.nix {inherit pkgs inputs system;};
+
+    checks.${system}.git-hooks = import ./nix/git-hooks.nix {inherit pkgs inputs system;};
+
+    packages.${system} = import ./nix/package.nix {inherit pkgs;};
   };
 }
