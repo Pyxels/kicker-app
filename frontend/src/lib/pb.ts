@@ -1,7 +1,12 @@
 import PocketBase from 'pocketbase';
 import { toast } from 'vue-sonner';
 
-export const pb = new PocketBase('http://localhost:8090');
+const dev = import.meta.env.DEV;
+
+// in dev, hardcode the backend url
+// in prod, dynamically use the deployed origin
+const baseUrl = dev ? 'http://localhost:8090' : window.location.origin;
+export const pb = new PocketBase(baseUrl);
 
 export async function safe<T>(call: () => Promise<T>): Promise<T | undefined> {
   try {
