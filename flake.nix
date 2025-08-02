@@ -1,6 +1,12 @@
 {
   description = "Kicker App";
-  inputs.nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+  inputs = {
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    git-hooks = {
+      url = "github:cachix/git-hooks.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+  };
 
   outputs = inputs: let
     system = "x86_64-linux";
@@ -14,6 +20,8 @@
         just
         sqlite
       ];
+      inherit (inputs.self.checks.${system}.git-hooks) shellHook;
     };
+    checks.${system}.git-hooks = import ./git-hooks.nix {inherit pkgs inputs system;};
   };
 }

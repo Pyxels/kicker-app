@@ -55,7 +55,7 @@ export function isMatchOver(match: Partial<MatchDto> | null): boolean {
 
   let t1 = 0;
   let t2 = 0;
-  return match.rounds.some((r, i) => {
+  return match.rounds!.some((r, i) => {
     const t1Score = i % 2 === 0 ? r.blue.score : r.black.score;
     const t2Score = i % 2 === 0 ? r.black.score : r.blue.score;
     if (t1Score > t2Score) t1++;
