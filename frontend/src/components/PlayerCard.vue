@@ -21,7 +21,7 @@
     >
       <template v-if="user?.avatar">
         <img
-          :src="`http://localhost:8090/api/files/users/${user.id}/${user.avatar}?thumb=100x100`"
+          :src="`${baseUrl}/api/files/users/${user.id}/${user.avatar}?thumb=100x100`"
           alt="avatar"
           class="w-full h-full rounded-full object-cover"
         >
@@ -50,13 +50,14 @@
 </template>
 
 <script lang="ts" setup>
-  import { Role, TeamColor, UserDto } from '@/dto/match.dto';
+import { Role, TeamColor, UserDto } from '@/dto/match.dto';
+import { baseUrl } from '@/lib/pb';
 
-  const emit = defineEmits(['event']);
-  const props = defineProps<{
-    user?: UserDto;
-    color: TeamColor;
-    role: Role;
-    border: 'u' | 'd';
-  }>();
+const emit = defineEmits(['event']);
+const props = defineProps<{
+  user?: UserDto;
+  color: TeamColor;
+  role: Role;
+  border: 'u' | 'd';
+}>();
 </script>
