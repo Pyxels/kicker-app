@@ -4,12 +4,18 @@ import { pb } from "@/lib/pb";
 import MatchView from "@/views/MatchView.vue";
 import MatchSelectView from "@/views/MatchSelect.vue";
 import LoginView from "@/views/LoginView.vue";
+import HomeView from "./views/HomeView.vue";
 
 const routes = [
   {
     path: "/login",
     name: "login",
     component: LoginView,
+  },
+  {
+    path: "/",
+    name: "home",
+    component: HomeView,
   },
   {
     path: "/match",
