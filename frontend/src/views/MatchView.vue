@@ -1,64 +1,62 @@
 <template>
-  <div class="min-h-screen flex flex-col items-center px-4 py-6 space-y-6">
-    <h1 class="text-2xl font-bold">
-      Round {{ match?.rounds.length || "Setup" }}
-    </h1>
+  <h1 class="text-2xl font-bold">
+    Round {{ match?.rounds.length || "Setup" }}
+  </h1>
 
-    <!-- score board - TODO rounds -->
-    <ScoreBoard
-      :leftTeam="
-        match?.expand[bottomTeam.name].map((p: UserDto) => p.name).join(' ')
-      "
-      :rightTeam="
-        match?.expand[topTeam.name].map((p: UserDto) => p.name).join(' ')
-      "
-      :leftTeamScore="currentRound?.[bottomTeam.color].score"
-      :rightTeamScore="currentRound?.[topTeam.color].score"
-      :leftTeamScoreTotal="match?.[`${bottomTeam.name}_score`]"
-      :rightTeamScoreTotal="match?.[`${topTeam.name}_score`]"
-      :roundStart="currentRound?.start"
-      :roundEnd="currentRound?.end"
-      :rounds="[]"
+  <!-- score board - TODO rounds -->
+  <ScoreBoard
+    :leftTeam="
+      match?.expand[bottomTeam.name].map((p: UserDto) => p.name).join(' ')
+    "
+    :rightTeam="
+      match?.expand[topTeam.name].map((p: UserDto) => p.name).join(' ')
+    "
+    :leftTeamScore="currentRound?.[bottomTeam.color].score"
+    :rightTeamScore="currentRound?.[topTeam.color].score"
+    :leftTeamScoreTotal="match?.[`${bottomTeam.name}_score`]"
+    :rightTeamScoreTotal="match?.[`${topTeam.name}_score`]"
+    :roundStart="currentRound?.start"
+    :roundEnd="currentRound?.end"
+    :rounds="[]"
+  />
+
+  <!-- player rows -->
+  <div class="w-full flex flex-row gap-4 justify-center">
+    <PlayerCard
+      :user="playersMap[currentRound?.[topTeam.color].attacker || 'noop']"
+      :color="topTeam.color"
+      role="attacker"
+      border="u"
+      @event="handleGoal"
     />
+    <PlayerCard
+      :user="playersMap[currentRound?.[topTeam.color].keeper || 'noop']"
+      :color="topTeam.color"
+      role="keeper"
+      border="u"
+      @event="handleGoal"
+    />
+  </div>
+  <div class="w-full flex flex-row gap-4 justify-center">
+    <PlayerCard
+      :user="playersMap[currentRound?.[bottomTeam.color].keeper || 'noop']"
+      :color="bottomTeam.color"
+      role="keeper"
+      border="d"
+      @event="handleGoal"
+    />
+    <PlayerCard
+      :user="playersMap[currentRound?.[bottomTeam.color].attacker || 'noop']"
+      :color="bottomTeam.color"
+      role="attacker"
+      border="d"
+      @event="handleGoal"
+    />
+  </div>
 
-    <!-- player rows -->
-    <div class="w-full flex flex-row gap-4 justify-center">
-      <PlayerCard
-        :user="playersMap[currentRound?.[topTeam.color].attacker || 'noop']"
-        :color="topTeam.color"
-        role="attacker"
-        border="u"
-        @event="handleGoal"
-      />
-      <PlayerCard
-        :user="playersMap[currentRound?.[topTeam.color].keeper || 'noop']"
-        :color="topTeam.color"
-        role="keeper"
-        border="u"
-        @event="handleGoal"
-      />
-    </div>
-    <div class="w-full flex flex-row gap-4 justify-center">
-      <PlayerCard
-        :user="playersMap[currentRound?.[bottomTeam.color].keeper || 'noop']"
-        :color="bottomTeam.color"
-        role="keeper"
-        border="d"
-        @event="handleGoal"
-      />
-      <PlayerCard
-        :user="playersMap[currentRound?.[bottomTeam.color].attacker || 'noop']"
-        :color="bottomTeam.color"
-        role="attacker"
-        border="d"
-        @event="handleGoal"
-      />
-    </div>
-
-    <!-- actions footer -->
-    <div class="mt-auto px-4 py-6">
-      <GameActions :match="match" @next="handleNextButton" />
-    </div>
+  <!-- actions footer -->
+  <div class="mt-auto px-4 py-6">
+    <GameActions :match="match" @next="handleNextButton" />
   </div>
 </template>
 
