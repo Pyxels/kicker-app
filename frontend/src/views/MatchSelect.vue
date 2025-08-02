@@ -74,12 +74,11 @@
 <script lang="ts" setup>
 import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
-import PocketBase from "pocketbase";
 
+import { pb, safe } from "@/lib/pb";
 import { UserDto } from "@/dto/match.dto";
 
 const router = useRouter();
-const pb = new PocketBase("http://127.0.0.1:8090");
 
 const users = ref<UserDto[]>();
 const selected = ref({
@@ -90,14 +89,9 @@ const selected = ref({
 });
 
 onMounted(async () => {
-  if (!pb.authStore.record?.id)
-    await pb
-      .collection("users")
-      .authWithPassword("alice@example.com", "kicker1337");
-
-  users.value = await pb
-    .collection("users")
-    .getFullList({ fields: "id,name,avatar" });
+  users.value = await safe(() =>
+    pb.collection("users").getFullList({ fields: "id,name,avatar" }),
+  );
 });
 
 const isComplete = computed(() => {
@@ -109,27 +103,29 @@ const isComplete = computed(() => {
 
 async function submitSelection() {
   const newMatchId = (
-    await pb.collection("match").create({
-      team1: [selected.value.black_attacker, selected.value.black_keeper],
-      team2: [selected.value.blue_keeper, selected.value.blue_attacker],
-      team1_score: 0,
-      team2_score: 0,
-      rounds: [
-        {
-          black: {
-            attacker: selected.value.black_attacker,
-            keeper: selected.value.black_keeper,
-            score: 0,
+    await safe(() =>
+      pb.collection("match").create({
+        team1: [selected.value.black_attacker, selected.value.black_keeper],
+        team2: [selected.value.blue_keeper, selected.value.blue_attacker],
+        team1_score: 0,
+        team2_score: 0,
+        rounds: [
+          {
+            black: {
+              attacker: selected.value.black_attacker,
+              keeper: selected.value.black_keeper,
+              score: 0,
+            },
+            blue: {
+              attacker: selected.value.blue_attacker,
+              keeper: selected.value.blue_keeper,
+              score: 0,
+            },
           },
-          blue: {
-            attacker: selected.value.blue_attacker,
-            keeper: selected.value.blue_keeper,
-            score: 0,
-          },
-        },
-      ],
-    })
-  ).id;
+        ],
+      }),
+    )
+  )?.id;
   if (newMatchId) router.push(`/match/${newMatchId}`);
 }
 </script>

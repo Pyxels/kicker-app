@@ -65,8 +65,9 @@
 <script lang="ts" setup>
 import { ref, onMounted, onUnmounted, Ref, computed } from "vue";
 import { useRouter } from "vue-router";
-import PocketBase, { RecordSubscription } from "pocketbase";
+import { RecordSubscription } from "pocketbase";
 
+import { pb, safe } from "@/lib/pb";
 import PlayerCard from "@/components/PlayerCard.vue";
 import ScoreBoard from "@/components/ScoreBoard.vue";
 import GameActions from "@/components/GameActions.vue";
@@ -83,7 +84,6 @@ import {
 const props = defineProps<{ matchId: string }>();
 
 const router = useRouter();
-const pb = new PocketBase("http://127.0.0.1:8090");
 
 const match: Ref<MatchDto | null> = ref(null);
 
@@ -136,14 +136,10 @@ const matchOver = computed(() => {
 });
 
 onMounted(async () => {
-  if (!pb.authStore.record?.id)
-    await pb
-      .collection("users")
-      .authWithPassword("alice@example.com", "kicker1337");
-
-  match.value = await pb
-    .collection("match")
-    .getOne(props.matchId, matchFetchOptions);
+  match.value =
+    (await safe(() =>
+      pb.collection("match").getOne(props.matchId, matchFetchOptions),
+    )) || null;
 
   pb.collection("match").subscribe(
     props.matchId,
@@ -185,29 +181,33 @@ async function handleGoal(event: {
     ? match.value.team2_score
     : match.value.team2_score + 1;
 
-  await pb.collection("match").update(props.matchId, {
-    team1_score,
-    team2_score,
-    rounds: [
-      ...match.value.rounds.slice(0, -1),
-      {
-        ...currentRound.value,
-        [event.color]: {
-          ...currentRound.value[event.color],
-          score: newScore,
+  await safe(() =>
+    pb.collection("match").update(props.matchId, {
+      team1_score,
+      team2_score,
+      rounds: [
+        ...match.value!.rounds.slice(0, -1),
+        {
+          ...currentRound.value,
+          [event.color]: {
+            ...currentRound.value![event.color],
+            score: newScore,
+          },
+          end,
         },
-        end,
-      },
-    ],
-  } as Partial<MatchDto>);
+      ],
+    } as Partial<MatchDto>),
+  );
 
-  await pb.collection("goal").create({
-    match: props.matchId,
-    user: event.id,
-    team: event.color,
-    role: event.role,
-    action: event.action,
-  });
+  await safe(() =>
+    pb.collection("goal").create({
+      match: props.matchId,
+      user: event.id,
+      team: event.color,
+      role: event.role,
+      action: event.action,
+    }),
+  );
 }
 
 async function handleNextButton() {
@@ -215,15 +215,17 @@ async function handleNextButton() {
 
   if (!currentRound.value.start) {
     console.debug(`start round ${match.value.rounds.length}`);
-    await pb.collection("match").update(props.matchId, {
-      rounds: [
-        ...match.value.rounds.slice(0, -1),
-        {
-          ...currentRound.value,
-          start: new Date(),
-        },
-      ],
-    });
+    await safe(() =>
+      pb.collection("match").update(props.matchId, {
+        rounds: [
+          ...match.value!.rounds.slice(0, -1),
+          {
+            ...currentRound.value,
+            start: new Date(),
+          },
+        ],
+      }),
+    );
     return;
   }
 
