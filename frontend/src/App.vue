@@ -1,9 +1,7 @@
 <template>
   <div class="min-h-screen flex flex-col bg-gray-100 text-gray-900">
     <!-- header -->
-    <header
-      class="bg-white/90 backdrop-blur sticky top-0 z-50 shadow-sm border-b border-gray-200"
-    >
+    <header class="bg-white/90 backdrop-blur sticky top-0 z-50 shadow-sm border-b border-gray-200">
       <div
         class="max-w-4xl mx-auto px-6 py-4 flex items-center justify-center cursor-pointer select-none transition hover:opacity-90"
         @click="router.push('/')"
@@ -20,15 +18,15 @@
       <router-view />
     </main>
 
-    <Toaster richColors />
+    <Toaster rich-colors />
   </div>
 </template>
 
 <script lang="ts" setup>
-import { useRouter } from "vue-router";
-import { Toaster } from "vue-sonner";
-import { TrophyIcon } from "@heroicons/vue/24/solid";
-import "vue-sonner/style.css";
+  import { useRouter } from 'vue-router';
+  import { Toaster } from 'vue-sonner';
+  import { TrophyIcon } from '@heroicons/vue/24/solid';
+  import 'vue-sonner/style.css';
 
-const router = useRouter();
+  const router = useRouter();
 </script>

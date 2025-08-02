@@ -1,32 +1,32 @@
-import { createRouter, createWebHistory } from "vue-router";
-import { pb } from "@/lib/pb";
+import { createRouter, createWebHistory, RouteLocationNormalized } from 'vue-router';
+import { pb } from '@/lib/pb';
 
-import MatchView from "@/views/MatchView.vue";
-import MatchSelectView from "@/views/MatchSelect.vue";
-import LoginView from "@/views/LoginView.vue";
-import HomeView from "./views/HomeView.vue";
+import MatchView from '@/views/MatchView.vue';
+import MatchSelectView from '@/views/MatchSelect.vue';
+import LoginView from '@/views/LoginView.vue';
+import HomeView from './views/HomeView.vue';
 
 const routes = [
   {
-    path: "/login",
-    name: "login",
+    path: '/login',
+    name: 'login',
     component: LoginView,
   },
   {
-    path: "/",
-    name: "home",
+    path: '/',
+    name: 'home',
     component: HomeView,
   },
   {
-    path: "/match",
-    name: "match-select",
+    path: '/match',
+    name: 'match-select',
     component: MatchSelectView,
   },
   {
-    path: "/match/:id",
-    name: "match",
+    path: '/match/:id',
+    name: 'match',
     component: MatchView,
-    props: (route: any) => ({ matchId: route.params.id }),
+    props: (route: RouteLocationNormalized) => ({ matchId: route.params.id }),
   },
 ];
 
@@ -38,10 +38,10 @@ const router = createRouter({
 router.beforeEach((to, _from, next) => {
   const isLoggedIn = pb.authStore.isValid;
 
-  if (to.path !== "/login" && !isLoggedIn) {
-    next({ path: "/login" });
-  } else if (to.path === "/login" && isLoggedIn) {
-    next({ path: "/" });
+  if (to.path !== '/login' && !isLoggedIn) {
+    next({ path: '/login' });
+  } else if (to.path === '/login' && isLoggedIn) {
+    next({ path: '/' });
   } else {
     next();
   }

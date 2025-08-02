@@ -1,11 +1,11 @@
 export const matchFetchOptions = {
-  expand: "team1,team2",
-  fields: `${["team1", "team2"].map((t) => ["id", "name", "avatar"].map((f) => `expand.${t}.${f}`).join(",")).join(",")},id,team1,team2,team1_score,team2_score,rounds,start,end,created`,
+  expand: 'team1,team2',
+  fields: `${['team1', 'team2'].map((t) => ['id', 'name', 'avatar'].map((f) => `expand.${t}.${f}`).join(',')).join(',')},id,team1,team2,team1_score,team2_score,rounds,start,end,created`,
 };
 
-export type TeamColor = "blue" | "black";
-export type Role = "attacker" | "keeper";
-export type Action = "goal";
+export type TeamColor = 'blue' | 'black';
+export type Role = 'attacker' | 'keeper';
+export type Action = 'goal';
 
 export interface MatchDto {
   id: string;
@@ -58,7 +58,8 @@ export function isMatchOver(match: Partial<MatchDto> | null): boolean {
   return match.rounds.some((r, i) => {
     const t1Score = i % 2 === 0 ? r.blue.score : r.black.score;
     const t2Score = i % 2 === 0 ? r.black.score : r.blue.score;
-    t1Score > t2Score ? t1++ : t2++;
+    if (t1Score > t2Score) t1++;
+    else t2++;
     return t1 === 2 || t2 === 2;
   });
 }
