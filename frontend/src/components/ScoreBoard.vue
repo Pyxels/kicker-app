@@ -22,7 +22,7 @@
       class="mt-1 text-sm text-gray-500 font-mono flex items-center justify-center gap-1"
     >
       <ClockIcon class="w-4 h-4" />
-      {{ elapsedFormatted || '-:-' }}
+      {{ elapsedFormatted || "-:-" }}
     </div>
 
     <!-- player names -->
@@ -64,6 +64,8 @@
 <script lang="ts" setup>
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { ClockIcon } from "@heroicons/vue/24/outline";
+
+import { elapsedTime } from "@/lib/time";
 
 const props = defineProps<{
   leftTeam: string | undefined;
@@ -110,17 +112,6 @@ const rightTeamColor = computed(() => {
 const elapsedFormatted = computed(() => {
   if (!props.roundStart) return null;
 
-  const start = new Date(props.roundStart).getTime();
-  const end = props.roundEnd ? new Date(props.roundEnd).getTime() : now.value;
-
-  if (isNaN(start) || isNaN(end) || end < start) return null;
-
-  const elapsedSeconds = Math.floor((end - start) / 1000);
-  const minutes = Math.floor(elapsedSeconds / 60)
-    .toString()
-    .padStart(2, "0");
-  const seconds = (elapsedSeconds % 60).toString().padStart(2, "0");
-
-  return `${minutes}:${seconds}`;
+  return elapsedTime(props.roundStart, now, props.roundEnd);
 });
 </script>
