@@ -1,7 +1,11 @@
 <template>
   <div
-    class="w-48 bg-white text-gray-900 rounded-2xl shadow-lg flex flex-col items-center p-4 overflow-hidden"
-    :class="[border === 'u' ? 'border-t-7' : 'border-b-7', color === 'blue' ? 'border-blue-500' : 'border-gray-800']"
+    class="w-48 bg-white text-gray-900 rounded-2xl shadow-lg flex flex-col items-center p-4 overflow-hidden transition"
+    :class="[
+      border === 'u' ? 'border-t-7' : 'border-b-7',
+      color === 'blue' ? 'border-blue-500' : 'border-gray-800',
+      isCurrentUser ? 'ring-3 ring-yellow-400' : '',
+    ]"
     @click="
       emit('event', {
         id: props.user?.id,
@@ -50,8 +54,9 @@
 </template>
 
 <script lang="ts" setup>
+import { computed } from 'vue';
 import { Role, TeamColor, UserDto } from '@/dto/match.dto';
-import { baseUrl } from '@/lib/pb';
+import { baseUrl, pb } from '@/lib/pb';
 
 const emit = defineEmits(['event']);
 const props = defineProps<{
@@ -60,4 +65,6 @@ const props = defineProps<{
   role: Role;
   border: 'u' | 'd';
 }>();
+
+const isCurrentUser = computed(() => props.user?.id === pb.authStore.record?.id);
 </script>
