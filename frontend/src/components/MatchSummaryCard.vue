@@ -140,8 +140,8 @@ onMounted(() => {
 
 const inProgress = computed(() => !props.match.end);
 const timeOrDate = computed(() => {
-  if (!props.match.start) return 'starting...';
-  if (inProgress.value) return elapsedTime(props.match.start!, now, props.match.end);
+  if (!props.match.rounds.at(-1)?.start) return 'starting...';
+  if (inProgress.value) return elapsedTime(props.match.rounds.at(-1)!.start!, now, props.match.end);
 
   return formatShortDate(props.match.end);
 });

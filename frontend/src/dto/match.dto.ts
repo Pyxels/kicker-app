@@ -58,8 +58,8 @@ export function isMatchOver(match: Partial<MatchDto> | null): boolean {
   return match.rounds!.some((r, i) => {
     const t1Score = i % 2 === 0 ? r.blue.score : r.black.score;
     const t2Score = i % 2 === 0 ? r.black.score : r.blue.score;
-    if (t1Score > t2Score) t1++;
-    else t2++;
+    if (t1Score === 5) t1++;
+    else if (t2Score === 5) t2++;
     return t1 === 2 || t2 === 2;
   });
 }

@@ -78,7 +78,7 @@ const bottomTeam = computed<{ color: TeamColor; name: 'team1' | 'team2' }>(() =>
   if (!userInMatch.value)
     return {
       color: match.value.rounds.length % 2 === 0 ? 'blue' : 'black',
-      name: match.value.rounds.length % 2 === 0 ? 'team2' : 'team1',
+      name: 'team1',
     };
   return {
     color:
@@ -132,11 +132,11 @@ async function handleGoal(event: { id: string; color: TeamColor; role: Role; act
     team1_score,
     team2_score,
     rounds: [
-      ...match.value!.rounds.slice(0, -1),
+      ...match.value.rounds.slice(0, -1),
       {
         ...currentRound.value,
         [event.color]: {
-          ...currentRound.value![event.color],
+          ...currentRound.value[event.color],
           score: newScore,
         },
         end,
@@ -169,7 +169,7 @@ async function handleNextButton() {
     console.debug(`start round ${match.value.rounds.length}`);
     await safe(() =>
       pb.collection('match').update(props.matchId, {
-        start: match.value!.start ?? new Date(),
+        start: match.value!.start || new Date(),
         rounds: [
           ...match.value!.rounds.slice(0, -1),
           {
