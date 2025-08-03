@@ -1,18 +1,7 @@
 <template>
   <h1 class="text-2xl font-bold">Round {{ match?.rounds.length || 'Setup' }}</h1>
 
-  <!-- score board - TODO rounds -->
-  <ScoreBoard
-    :left-team="match?.expand[bottomTeam.name].map((p: UserDto) => p.name).join(' ')"
-    :right-team="match?.expand[topTeam.name].map((p: UserDto) => p.name).join(' ')"
-    :left-team-score="currentRound?.[bottomTeam.color].score"
-    :right-team-score="currentRound?.[topTeam.color].score"
-    :left-team-score-total="match?.[`${bottomTeam.name}_score`]"
-    :right-team-score-total="match?.[`${topTeam.name}_score`]"
-    :round-start="currentRound?.start"
-    :round-end="currentRound?.end"
-    :rounds="[]"
-  />
+  <ScoreBoard :match="match" :bottom-team="bottomTeam" :top-team="topTeam" />
 
   <!-- player rows -->
   <div class="w-full flex flex-row gap-4 justify-center">
