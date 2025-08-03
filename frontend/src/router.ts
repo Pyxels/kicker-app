@@ -6,6 +6,7 @@ import MatchSelectView from '@/views/MatchSelect.vue';
 import LoginView from '@/views/LoginView.vue';
 import HomeView from './views/HomeView.vue';
 import LogoutView from './views/LogoutView.vue';
+import UserSettingsView from './views/UserSettingsView.vue';
 
 const routes = [
   {
@@ -17,6 +18,11 @@ const routes = [
     path: '/logout',
     name: 'logout',
     component: LogoutView,
+  },
+  {
+    path: '/account/settings',
+    name: 'account-settings',
+    component: UserSettingsView,
   },
   {
     path: '/',
