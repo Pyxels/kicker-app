@@ -1,8 +1,6 @@
 <template>
   <div class="w-full max-w-md mx-auto bg-white p-6 rounded-xl shadow space-y-6">
-    <h2 class="text-2xl font-bold text-center">
-      Account Settings
-    </h2>
+    <h2 class="text-2xl font-bold text-center">Account Settings</h2>
 
     <!-- Avatar -->
     <div class="space-y-2 flex justify-center">
@@ -11,7 +9,7 @@
           v-if="previewUrl || user.avatar"
           :src="previewUrl || avatarUrl"
           class="w-32 h-32 rounded-full object-cover border"
-        >
+        />
         <label
           for="avatar-upload"
           class="inline-block cursor-pointer bg-gray-100 text-gray-700 px-4 py-2 rounded font-medium transition"
@@ -25,7 +23,7 @@
           accept="image/*"
           class="hidden"
           @change="handleAvatar"
-        >
+        />
       </div>
     </div>
 
@@ -36,7 +34,7 @@
         v-model="name"
         type="text"
         class="w-full px-4 py-2 border rounded focus:outline-none focus:ring focus:ring-blue-200"
-      >
+      />
     </div>
 
     <!-- Password Section -->
@@ -48,7 +46,7 @@
           type="password"
           class="w-full px-4 py-2 border rounded"
           placeholder="Required to change password"
-        >
+        />
       </div>
       <div>
         <label class="block font-medium mb-1">New Password</label>
@@ -57,38 +55,31 @@
           type="password"
           class="w-full px-4 py-2 border rounded"
           placeholder="Leave empty to keep the same"
-        >
+        />
       </div>
       <div>
         <label class="block font-medium mb-1">Confirm New Password</label>
-        <input
-          v-model="passwordConfirm"
-          type="password"
-          class="w-full px-4 py-2 border rounded"
-        >
+        <input v-model="passwordConfirm" type="password" class="w-full px-4 py-2 border rounded" />
       </div>
     </div>
 
     <!-- Save -->
-    <button
-      class="w-full bg-blue-600 text-white font-semibold py-2 rounded hover:bg-blue-700 transition"
-      @click="save"
-    >
+    <button class="w-full bg-blue-600 text-white font-semibold py-2 rounded hover:bg-blue-700 transition" @click="save">
       Save Changes
     </button>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
-import { baseUrl, pb, safe } from "@/lib/pb";
-import { toast } from "vue-sonner";
+import { ref } from 'vue';
+import { baseUrl, pb, safe } from '@/lib/pb';
+import { toast } from 'vue-sonner';
 
 const user = pb.authStore.record!;
 const name = ref(user.name);
-const oldPassword = ref("");
-const password = ref("");
-const passwordConfirm = ref("");
+const oldPassword = ref('');
+const password = ref('');
+const passwordConfirm = ref('');
 
 const file = ref<File | null>(null);
 const previewUrl = ref<string | null>(null);
@@ -104,39 +95,37 @@ function handleAvatar(e: Event) {
 
 async function save() {
   if (password.value && password.value !== passwordConfirm.value) {
-    toast.error("New passwords do not match");
+    toast.error('New passwords do not match');
     return;
   }
 
   const formData = new FormData();
-  formData.append("name", name.value);
+  formData.append('name', name.value);
 
   if (password.value) {
     if (!oldPassword.value) {
-      toast.error("Current password required to change password");
+      toast.error('Current password required to change password');
       return;
     }
-    formData.append("oldPassword", oldPassword.value);
-    formData.append("password", password.value);
-    formData.append("passwordConfirm", passwordConfirm.value);
+    formData.append('oldPassword', oldPassword.value);
+    formData.append('password', password.value);
+    formData.append('passwordConfirm', passwordConfirm.value);
   }
 
   if (file.value) {
-    formData.append("avatar", file.value);
+    formData.append('avatar', file.value);
   }
 
-  const updated = await safe(() =>
-    pb.collection("users").update(user.id, formData)
-  );
+  const updated = await safe(() => pb.collection('users').update(user.id, formData));
 
   if (updated) {
-    toast.success("Account updated");
+    toast.success('Account updated');
     if (password.value)
       // reauthenticate
-      await safe(() => pb.collection("users").authWithPassword(user.email, password.value));
+      await safe(() => pb.collection('users').authWithPassword(user.email, password.value));
   }
-  oldPassword.value = "";
-  password.value = "";
-  passwordConfirm.value = "";
+  oldPassword.value = '';
+  password.value = '';
+  passwordConfirm.value = '';
 }
 </script>

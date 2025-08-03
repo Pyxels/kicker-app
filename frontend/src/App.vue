@@ -7,9 +7,7 @@
         @click="router.push('/')"
       >
         <TrophyIcon class="w-6 h-6 mr-2 text-indigo-600" />
-        <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">
-          Kicker App
-        </h1>
+        <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Kicker App</h1>
       </div>
     </header>
 
@@ -23,10 +21,10 @@
 </template>
 
 <script lang="ts" setup>
-  import { useRouter } from 'vue-router';
-  import { Toaster } from 'vue-sonner';
-  import { TrophyIcon } from '@heroicons/vue/24/solid';
-  import 'vue-sonner/style.css';
+import { useRouter } from 'vue-router';
+import { Toaster } from 'vue-sonner';
+import { TrophyIcon } from '@heroicons/vue/24/solid';
+import 'vue-sonner/style.css';
 
-  const router = useRouter();
+const router = useRouter();
 </script>

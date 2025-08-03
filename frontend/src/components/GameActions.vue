@@ -1,8 +1,6 @@
 <template>
   <div class="bg-white rounded-xl shadow-md px-6 py-5 w-full max-w-xs border border-gray-200">
-    <h2 class="text-xl font-semibold text-gray-800 mb-5 text-center">
-      Actions
-    </h2>
+    <h2 class="text-xl font-semibold text-gray-800 mb-5 text-center">Actions</h2>
 
     <div class="flex gap-3 justify-center items-center">
       <!-- undo -->
@@ -29,50 +27,47 @@
         ]"
         @click="$emit('next')"
       >
-        <component
-          :is="currentIcon"
-          class="w-6 h-6"
-        />
+        <component :is="currentIcon" class="w-6 h-6" />
       </button>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-  import { ArrowUturnLeftIcon, ArrowRightIcon, PlayIcon, PauseCircleIcon, FlagIcon } from '@heroicons/vue/24/solid';
+import { ArrowUturnLeftIcon, ArrowRightIcon, PlayIcon, PauseCircleIcon, FlagIcon } from '@heroicons/vue/24/solid';
 
-  import { computed } from 'vue';
-  import { MatchDto } from '@/dto/match.dto';
+import { computed } from 'vue';
+import { MatchDto } from '@/dto/match.dto';
 
-  defineEmits(['undo', 'next']);
+defineEmits(['undo', 'next']);
 
-  const props = defineProps<{
-    match: MatchDto | null;
-  }>();
+const props = defineProps<{
+  match: MatchDto | null;
+}>();
 
-  const currentRound = computed(() => {
-    return props.match?.rounds.at(-1);
+const currentRound = computed(() => {
+  return props.match?.rounds.at(-1);
+});
+
+const matchOver = computed(() => {
+  let t1 = 0;
+  let t2 = 0;
+  return props.match?.rounds.some((r, i) => {
+    const t1Score = i % 2 === 0 ? r.blue.score : r.black.score;
+    const t2Score = i % 2 === 0 ? r.black.score : r.blue.score;
+    if (t1Score === 5) t1++;
+    if (t2Score === 5) t2++;
+    return t1 === 2 || t2 === 2;
   });
+});
+const roundOver = computed(() => currentRound.value?.end);
+const roundNotStarted = computed(() => !currentRound.value?.start);
+const roundInProgress = computed(() => currentRound.value?.start && !currentRound.value?.end);
 
-  const matchOver = computed(() => {
-    let t1 = 0;
-    let t2 = 0;
-    return props.match?.rounds.some((r, i) => {
-      const t1Score = i % 2 === 0 ? r.blue.score : r.black.score;
-      const t2Score = i % 2 === 0 ? r.black.score : r.blue.score;
-      if (t1Score === 5) t1++;
-      if (t2Score === 5) t2++;
-      return t1 === 2 || t2 === 2;
-    });
-  });
-  const roundOver = computed(() => currentRound.value?.end);
-  const roundNotStarted = computed(() => !currentRound.value?.start);
-  const roundInProgress = computed(() => currentRound.value?.start && !currentRound.value?.end);
-
-  const currentIcon = computed(() => {
-    if (matchOver.value) return FlagIcon;
-    if (roundNotStarted.value || roundOver.value) return PlayIcon;
-    if (roundInProgress.value) return PauseCircleIcon;
-    return ArrowRightIcon;
-  });
+const currentIcon = computed(() => {
+  if (matchOver.value) return FlagIcon;
+  if (roundNotStarted.value || roundOver.value) return PlayIcon;
+  if (roundInProgress.value) return PauseCircleIcon;
+  return ArrowRightIcon;
+});
 </script>

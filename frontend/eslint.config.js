@@ -1,12 +1,14 @@
+import globals from 'globals';
 import pluginVue from 'eslint-plugin-vue';
-import vueParser from 'vue-eslint-parser'; // ✅ required
+import vueParser from 'vue-eslint-parser';
 import tsParser from '@typescript-eslint/parser';
 import pluginTs from '@typescript-eslint/eslint-plugin';
-import globals from 'globals';
+import prettier from 'eslint-config-prettier';
 
 export default [
+  { ignores: ['dist', 'node_modules'] },
   ...pluginVue.configs['flat/recommended'],
-
+  prettier,
   {
     files: ['**/*.ts', '**/*.vue', '**/*.js'],
     ignores: ['dist', 'node_modules'],

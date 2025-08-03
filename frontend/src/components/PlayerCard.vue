@@ -24,7 +24,7 @@
           :src="`${baseUrl}/api/files/users/${user.id}/${user.avatar}?thumb=100x100`"
           alt="avatar"
           class="w-full h-full rounded-full object-cover"
-        >
+        />
       </template>
       <template v-else>
         {{ user?.name?.charAt(0) ?? '?' }}

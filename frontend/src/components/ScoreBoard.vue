@@ -21,14 +21,8 @@
 
     <!-- player names -->
     <div class="mt-2 text-sm text-gray-600 flex justify-between font-medium">
-      <span
-        class="inline-block truncate"
-        style="max-width: 15ch"
-      >{{ leftTeam }}</span>
-      <span
-        class="inline-block truncate"
-        style="max-width: 15ch"
-      >{{ rightTeam }}</span>
+      <span class="inline-block truncate" style="max-width: 15ch">{{ leftTeam }}</span>
+      <span class="inline-block truncate" style="max-width: 15ch">{{ rightTeam }}</span>
     </div>
 
     <!-- TODO round win/loss indicators -->
@@ -36,52 +30,52 @@
 </template>
 
 <script lang="ts" setup>
-  import { ref, computed, onMounted, onUnmounted } from 'vue';
-  import { ClockIcon } from '@heroicons/vue/24/outline';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ClockIcon } from '@heroicons/vue/24/outline';
 
-  import { elapsedTime } from '@/lib/time';
+import { elapsedTime } from '@/lib/time';
 
-  const props = defineProps<{
-    leftTeam: string | undefined;
-    rightTeam: string | undefined;
-    leftTeamScore: number | undefined;
-    leftTeamScoreTotal: number | undefined;
-    rightTeamScore: number | undefined;
-    rightTeamScoreTotal: number | undefined;
-    roundStart: string | undefined;
-    roundEnd: string | undefined;
-    // rounds: any[] // TODO later
-  }>();
+const props = defineProps<{
+  leftTeam: string | undefined;
+  rightTeam: string | undefined;
+  leftTeamScore: number | undefined;
+  leftTeamScoreTotal: number | undefined;
+  rightTeamScore: number | undefined;
+  rightTeamScoreTotal: number | undefined;
+  roundStart: string | undefined;
+  roundEnd: string | undefined;
+  // rounds: any[] // TODO later
+}>();
 
-  const now = ref(Date.now());
+const now = ref(Date.now());
 
-  let interval: number;
+let interval: number;
 
-  onMounted(() => {
-    interval = window.setInterval(() => {
-      now.value = Date.now();
-    }, 1000);
-  });
+onMounted(() => {
+  interval = window.setInterval(() => {
+    now.value = Date.now();
+  }, 1000);
+});
 
-  onUnmounted(() => {
-    clearInterval(interval);
-  });
+onUnmounted(() => {
+  clearInterval(interval);
+});
 
-  const leftTeamColor = computed(() => {
-    if (props?.leftTeamScore === 0 && props?.leftTeamScoreTotal === 0) return 'text-red-500';
-    if ((props?.leftTeamScore || 0) > (props?.rightTeamScore || 0)) return 'text-green-500';
-    return 'text-gray-800';
-  });
+const leftTeamColor = computed(() => {
+  if (props?.leftTeamScore === 0 && props?.leftTeamScoreTotal === 0) return 'text-red-500';
+  if ((props?.leftTeamScore || 0) > (props?.rightTeamScore || 0)) return 'text-green-500';
+  return 'text-gray-800';
+});
 
-  const rightTeamColor = computed(() => {
-    if (props?.rightTeamScore === 0 && props?.rightTeamScoreTotal === 0) return 'text-red-500';
-    if ((props?.rightTeamScore || 0) > (props?.leftTeamScore || 0)) return 'text-green-500';
-    return 'text-gray-800';
-  });
+const rightTeamColor = computed(() => {
+  if (props?.rightTeamScore === 0 && props?.rightTeamScoreTotal === 0) return 'text-red-500';
+  if ((props?.rightTeamScore || 0) > (props?.leftTeamScore || 0)) return 'text-green-500';
+  return 'text-gray-800';
+});
 
-  const elapsedFormatted = computed(() => {
-    if (!props.roundStart) return null;
+const elapsedFormatted = computed(() => {
+  if (!props.roundStart) return null;
 
-    return elapsedTime(props.roundStart, now, props.roundEnd);
-  });
+  return elapsedTime(props.roundStart, now, props.roundEnd);
+});
 </script>
