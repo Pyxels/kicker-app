@@ -1,5 +1,5 @@
 {pkgs, ...}: let
-  version = "0.0.1";
+  version = "0.0.2";
 in {
   frontend-dist = pkgs.buildNpmPackage {
     inherit version;
