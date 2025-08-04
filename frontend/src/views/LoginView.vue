@@ -31,6 +31,19 @@
       >
         Log In
       </button>
+
+      <div class="flex items-center space-x-4">
+        <div class="flex-grow h-px bg-gray-200"></div>
+        <span class="text-gray-500 text-sm">OR</span>
+        <div class="flex-grow h-px bg-gray-200"></div>
+      </div>
+
+      <button
+        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg transition-colors duration-200"
+        @click="oidc"
+      >
+        OIDC
+      </button>
     </form>
   </div>
 </template>
@@ -49,6 +62,13 @@ const password = ref('');
 
 async function handleSubmit() {
   if (await safe(() => pb.collection('users').authWithPassword(email.value, password.value))) {
+    toast.success('Login successful');
+    router.push('/');
+  }
+}
+
+async function oidc() {
+  if (await safe(() => pb.collection('users').authWithOAuth2({ provider: 'oidc' }))) {
     toast.success('Login successful');
     router.push('/');
   }
