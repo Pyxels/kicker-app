@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen flex flex-col bg-gray-100 text-gray-900">
+  <div class="min-h-screen flex flex-col bg-gray-100 text-gray-900 select-none">
     <!-- header -->
     <header class="bg-white/90 backdrop-blur sticky top-0 z-50 shadow-sm border-b border-gray-200">
       <div class="relative max-w-4xl mx-auto px-6 py-4 flex items-center justify-center">
