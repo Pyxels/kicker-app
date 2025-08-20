@@ -177,14 +177,14 @@ function getMatchOutcomeColor(): string {
   const team1Ids = props.match.expand?.team1?.map((u: UserDto) => u.id) || [];
   const team2Ids = props.match.expand?.team2?.map((u: UserDto) => u.id) || [];
 
-  const isTeam1 = team1Ids.includes(userId);
-  const isTeam2 = team2Ids.includes(userId);
+  if (!team1Ids.includes(userId) && !team2Ids.includes(userId)) return '';
 
-  if (!isTeam1 && !isTeam2) return '';
+  const wins = props.match.rounds.filter(
+    (r) =>
+      (r.black.score === 5 && [r.black.attacker, r.black.keeper].includes(userId)) ||
+      (r.blue.score === 5 && [r.blue.attacker, r.blue.keeper].includes(userId))
+  ).length;
 
-  const team1Wins = props.match.team1_score > props.match.team2_score;
-  const userWon = (isTeam1 && team1Wins) || (isTeam2 && !team1Wins);
-
-  return userWon ? 'border-2 border-green-500' : 'border-2 border-red-500';
+  return wins === 2 ? 'border-2 border-green-500' : 'border-2 border-red-500';
 }
 </script>
