@@ -22,7 +22,7 @@ in {
     installPhase = ''
       runHook preInstall
       mkdir -p $out
-      cp -r pb_migrations/ $out
+      cp -r pb_migrations/ pb_hooks/ $out
       runHook postInstall
     '';
   };

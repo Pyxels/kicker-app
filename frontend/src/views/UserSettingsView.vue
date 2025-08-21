@@ -5,57 +5,35 @@
     <!-- Avatar -->
     <div class="space-y-2 flex justify-center">
       <div class="flex flex-col items-center gap-4">
-        <img
-          v-if="previewUrl || user.avatar"
-          :src="previewUrl || avatarUrl"
-          class="w-32 h-32 rounded-full object-cover border"
-        />
-        <label
-          for="avatar-upload"
-          class="inline-block cursor-pointer bg-gray-100 text-gray-700 px-4 py-2 rounded font-medium transition"
-        >
+        <img v-if="previewUrl || user.avatar" :src="previewUrl || avatarUrl"
+          class="w-32 h-32 rounded-full object-cover border" />
+        <label for="avatar-upload"
+          class="inline-block cursor-pointer bg-gray-100 text-gray-700 px-4 py-2 rounded font-medium transition">
           Upload Image
         </label>
-        <input
-          id="avatar-upload"
-          ref="avatarInput"
-          type="file"
-          accept="image/*"
-          class="hidden"
-          @change="handleAvatar"
-        />
+        <input id="avatar-upload" ref="avatarInput" type="file" accept="image/*" class="hidden"
+          @change="handleAvatar" />
       </div>
     </div>
 
     <!-- Name -->
     <div>
       <label class="block font-medium mb-1">Display Name</label>
-      <input
-        v-model="name"
-        type="text"
-        class="w-full px-4 py-2 border rounded focus:outline-none focus:ring focus:ring-blue-200"
-      />
+      <input v-model="name" type="text"
+        class="w-full px-4 py-2 border rounded focus:outline-none focus:ring focus:ring-blue-200" />
     </div>
 
     <!-- Password Section -->
     <div class="space-y-4">
       <div>
         <label class="block font-medium mb-1">Current Password</label>
-        <input
-          v-model="oldPassword"
-          type="password"
-          class="w-full px-4 py-2 border rounded"
-          placeholder="Required to change password"
-        />
+        <input v-model="oldPassword" type="password" class="w-full px-4 py-2 border rounded"
+          placeholder="Required to change password" />
       </div>
       <div>
         <label class="block font-medium mb-1">New Password</label>
-        <input
-          v-model="password"
-          type="password"
-          class="w-full px-4 py-2 border rounded"
-          placeholder="Leave empty to keep the same"
-        />
+        <input v-model="password" type="password" class="w-full px-4 py-2 border rounded"
+          placeholder="Leave empty to keep the same" />
       </div>
       <div>
         <label class="block font-medium mb-1">Confirm New Password</label>
@@ -66,6 +44,16 @@
     <!-- Save -->
     <button class="w-full bg-blue-600 text-white font-semibold py-2 rounded hover:bg-blue-700 transition" @click="save">
       Save Changes
+    </button>
+
+    <div class="flex items-center space-x-4">
+      <div class="flex-grow h-px bg-gray-200"></div>
+      <span class="text-gray-500 text-sm">OR</span>
+      <div class="flex-grow h-px bg-gray-200"></div>
+    </div>
+
+    <button class="w-full text-black font-semibold py-2 rounded transition" @click="resetPassword">
+      Reset Password
     </button>
   </div>
 </template>
@@ -127,5 +115,17 @@ async function save() {
   oldPassword.value = '';
   password.value = '';
   passwordConfirm.value = '';
+}
+
+async function resetPassword() {
+  try {
+    await pb.send('/api/hooks/password/reset', { method: 'POST' });
+  } catch (e) {
+    toast.error(`Something went wrong resetting password: ${e}`);
+    return;
+  }
+  toast.success('Reset Password to "kicker1337", please change now!');
+  // reauthenticate
+  await safe(() => pb.collection('users').authWithPassword(user.email, 'kicker1337'));
 }
 </script>
