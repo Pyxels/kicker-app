@@ -158,6 +158,7 @@ async function handleGoal(event: { id: string; color: TeamColor; role: Role; act
       team: event.color,
       role: event.role,
       action: event.action,
+      round: match.value?.rounds.length || 0,
     })
   );
 }

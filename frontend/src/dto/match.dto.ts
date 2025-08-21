@@ -48,6 +48,7 @@ export interface GoalDto {
   team: TeamColor;
   role: Role;
   action: Action;
+  round: number;
 }
 
 export function isMatchOver(match: Partial<MatchDto> | null): boolean {
