@@ -51,7 +51,7 @@
       <router-view />
     </main>
 
-    <Toaster rich-colors />
+    <Toaster rich-colors position="top-left"/>
   </div>
 </template>
 
