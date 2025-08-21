@@ -1,12 +1,13 @@
 {pkgs, ...}: let
-  version = "0.0.3";
-in {
-  frontend-dist = pkgs.buildNpmPackage {
+  version = "0.0.5";
+in rec {
+  frontend-dist = pkgs.buildNpmPackage rec {
     inherit version;
     name = "kicker-frontend-dist";
     src = ../frontend;
 
-    npmDepsHash = "sha256-xCuqq6dRcu8SImVN9LBzimocDmGGfq1EIIs/BQQw13U=";
+    npmDeps = pkgs.importNpmLock {npmRoot = "${src}";};
+    inherit (pkgs.importNpmLock) npmConfigHook;
 
     installPhase = ''
       runHook preInstall
@@ -20,11 +21,22 @@ in {
     src = ../backend;
 
     installPhase = ''
-      runHook preInstall
       mkdir -p $out
       cp -r pb_migrations/ pb_hooks/ $out
-      runHook postInstall
     '';
   };
-  inherit (pkgs) pocketbase;
+  kicker-app = pkgs.writeShellApplication {
+    name = "kicker-app";
+    text = ''
+      ${pkgs.lib.getExe pkgs.pocketbase} serve \
+            --http=0.0.0.0:8090 \
+            --migrationsDir=${backend-data}/pb_migrations \
+            --hooksDir=${backend-data}/pb_hooks \
+            --publicDir=${frontend-dist}/dist \
+            --dir=/var/lib/kicker-app/pb_data \
+            "$@"
+    '';
+  };
+
+  default = kicker-app;
 }
