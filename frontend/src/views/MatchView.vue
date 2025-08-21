@@ -101,7 +101,6 @@ onMounted(async () => {
   pb.collection('match').subscribe(
     props.matchId,
     (e: RecordSubscription<MatchDto>) => {
-      console.debug(`action '${e.action}' for match ${props.matchId}`);
       match.value = e.record;
     },
     matchFetchOptions
@@ -114,14 +113,8 @@ onUnmounted(() => {
 
 async function handleGoal(event: { id: string; color: TeamColor; role: Role; action: Action }) {
   if (!currentRound.value || !match.value) return;
-  if (!currentRound.value.start) {
-    console.debug(`round ${match.value.rounds.length} has not started yet`);
-    return;
-  }
-  if (!!currentRound.value.end) {
-    console.debug(`round ${match.value.rounds.length} is already over`);
-    return;
-  }
+  if (!currentRound.value.start) return;
+  if (!!currentRound.value.end) return;
 
   const newScore = currentRound.value[event.color].score + 1;
   const end = newScore === 5 ? new Date().toISOString() : undefined;
@@ -167,7 +160,6 @@ async function handleNextButton() {
   if (!currentRound.value || !match.value) return;
 
   if (!currentRound.value.start) {
-    console.debug(`start round ${match.value.rounds.length}`);
     await safe(() =>
       pb.collection('match').update(props.matchId, {
         start: match.value!.start || new Date(),
@@ -184,13 +176,11 @@ async function handleNextButton() {
   }
 
   if (matchOver.value) {
-    console.debug(`match ${props.matchId} over`);
     router.push(`/`);
     return;
   }
 
   if (currentRound.value.end) {
-    console.debug(`init round ${match.value.rounds.length + 1}`);
     pb.collection('match').update(props.matchId, {
       rounds: [
         ...match.value.rounds,
