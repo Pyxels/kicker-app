@@ -156,6 +156,13 @@
       >
         Confirm Match
       </button>
+
+      <button
+        class="mt-6 block mx-auto px-6 py-2 bg-white text-black border border-gray-200 font-semibold rounded disabled:opacity-50"
+        @click="randomize"
+      >
+        Randomize
+      </button>
     </div>
   </div>
 </template>
@@ -254,6 +261,15 @@ function clearRole(roleKey: RoleKey) {
 function clearSelection() {
   selectedPlayerId.value = null;
   selectedFromRoleKey.value = null;
+}
+
+function randomize() {
+  const roles = Object.keys(assignments) as RoleKey[];
+  const shuffled = [...selectedIds.value].sort(() => Math.random() - 0.5);
+
+  roles.forEach((role, i) => {
+    assignments[role] = getUserById(shuffled[i]) ?? null;
+  });
 }
 
 async function submitSelection() {
