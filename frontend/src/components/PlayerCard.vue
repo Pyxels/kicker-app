@@ -49,13 +49,34 @@
         <span v-if="role === 'attacker'">⚽️ Attacker</span>
         <span v-else>🛡️ Keeper</span>
       </div>
+
+      <!-- goals pips -->
+      <div class="mt-3 w-full">
+        <div class="mt-1 flex flex-wrap gap-1">
+          <span
+            v-for="n in visibleBalls"
+            :key="n"
+            class="inline-flex h-6 w-6 items-center justify-center rounded-full border text-sm"
+            :class="color === 'blue' ? 'border-blue-300 bg-blue-50' : 'border-gray-400 bg-gray-100'"
+            aria-hidden="true"
+            >⚽️</span
+          >
+
+          <span
+            v-if="moreGoals > 0"
+            class="inline-flex h-6 px-2 items-center justify-center rounded-full text-xs font-medium"
+            :class="color === 'blue' ? 'bg-blue-100 text-blue-800' : 'bg-gray-200 text-gray-800'"
+            >+{{ moreGoals }}</span
+          >
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { computed } from 'vue';
-import { Role, TeamColor, UserDto } from '@/dto/match.dto';
+import { GoalDto, Role, TeamColor, UserDto } from '@/dto/match.dto';
 import { baseUrl, pb } from '@/lib/pb';
 
 const emit = defineEmits(['event']);
@@ -64,7 +85,12 @@ const props = defineProps<{
   color: TeamColor;
   role: Role;
   border: 'u' | 'd';
+  goals: GoalDto[];
 }>();
 
+const roundGoals = computed(() => props.goals.filter((g) => g.user === props.user?.id).length);
 const isCurrentUser = computed(() => props.user?.id === pb.authStore.record?.id);
+
+const visibleBalls = computed(() => Math.min(roundGoals.value, 10));
+const moreGoals = computed(() => Math.max(roundGoals.value - 10, 0));
 </script>

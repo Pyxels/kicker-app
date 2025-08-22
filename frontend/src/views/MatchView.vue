@@ -10,6 +10,7 @@
       :color="topTeam.color"
       role="attacker"
       border="u"
+      :goals="roundGoals"
       @event="handleGoal"
     />
     <PlayerCard
@@ -17,6 +18,7 @@
       :color="topTeam.color"
       role="keeper"
       border="u"
+      :goals="roundGoals"
       @event="handleGoal"
     />
   </div>
@@ -26,6 +28,7 @@
       :color="bottomTeam.color"
       role="keeper"
       border="d"
+      :goals="roundGoals"
       @event="handleGoal"
     />
     <PlayerCard
@@ -33,6 +36,7 @@
       :color="bottomTeam.color"
       role="attacker"
       border="d"
+      :goals="roundGoals"
       @event="handleGoal"
     />
   </div>
@@ -53,13 +57,14 @@ import PlayerCard from '@/components/PlayerCard.vue';
 import ScoreBoard from '@/components/ScoreBoard.vue';
 import GameActions from '@/components/GameActions.vue';
 
-import { Action, isMatchOver, MatchDto, matchFetchOptions, Role, TeamColor, UserDto } from '@/dto/match.dto';
+import { Action, GoalDto, isMatchOver, MatchDto, matchFetchOptions, Role, TeamColor, UserDto } from '@/dto/match.dto';
 
 const props = defineProps<{ matchId: string }>();
 
 const router = useRouter();
 
 const match: Ref<MatchDto | null> = ref(null);
+const roundGoals = ref<GoalDto[]>([]);
 
 const playersMap = computed<Record<string, UserDto>>(() =>
   Object.values(match.value?.expand || {})
@@ -97,6 +102,13 @@ const matchOver = computed(() => isMatchOver(match.value));
 
 onMounted(async () => {
   match.value = (await safe(() => pb.collection('match').getOne(props.matchId, matchFetchOptions))) || null;
+  roundGoals.value =
+    (await safe(() =>
+      pb.collection('goal').getFullList({
+        fields: 'user',
+        filter: `match = "${props.matchId}" && round = ${match.value?.rounds?.length} && action = "goal"`,
+      })
+    )) || [];
 
   pb.collection('match').subscribe(
     props.matchId,
@@ -105,10 +117,18 @@ onMounted(async () => {
     },
     matchFetchOptions
   );
+  pb.collection('goal').subscribe(
+    '*',
+    (e: RecordSubscription<GoalDto>) => {
+      if (e.action === 'create') roundGoals.value.push(e.record);
+    },
+    { filter: `match = "${props.matchId}" && action = "goal"`, fields: 'user' }
+  );
 });
 
 onUnmounted(() => {
   pb.collection('match').unsubscribe();
+  pb.collection('goal').unsubscribe();
 });
 
 async function handleGoal(event: { id: string; color: TeamColor; role: Role; action: Action }) {
@@ -198,6 +218,7 @@ async function handleNextButton() {
         },
       ],
     });
+    roundGoals.value = [];
   }
 }
 </script>
