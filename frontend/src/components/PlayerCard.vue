@@ -8,7 +8,7 @@
     ]"
     @click="
       emit('event', {
-        id: props.user?.id,
+        playerId: props.user?.id,
         color: props.color,
         role: props.role,
         action: 'goal',

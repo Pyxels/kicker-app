@@ -40,6 +40,12 @@ const routes = [
     component: MatchView,
     props: (route: RouteLocationNormalized) => ({ matchId: route.params.id }),
   },
+  {
+    path: '/player/:id',
+    name: 'player',
+    component: () => import('@/views/PlayerView.vue'),
+    props: (route: RouteLocationNormalized) => ({ playerId: route.params.id }),
+  }
 ];
 
 const router = createRouter({
