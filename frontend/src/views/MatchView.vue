@@ -11,7 +11,7 @@
       role="attacker"
       border="u"
       :goals="roundGoals"
-      @event="handleGoal"
+      @event="handlePlayerClick"
     />
     <PlayerCard
       :user="playersMap[currentRound?.[topTeam.color].keeper || 'noop']"
@@ -19,7 +19,7 @@
       role="keeper"
       border="u"
       :goals="roundGoals"
-      @event="handleGoal"
+      @event="handlePlayerClick"
     />
   </div>
   <div class="w-full flex flex-row gap-4 justify-center">
@@ -29,7 +29,7 @@
       role="keeper"
       border="d"
       :goals="roundGoals"
-      @event="handleGoal"
+      @event="handlePlayerClick"
     />
     <PlayerCard
       :user="playersMap[currentRound?.[bottomTeam.color].attacker || 'noop']"
@@ -37,7 +37,7 @@
       role="attacker"
       border="d"
       :goals="roundGoals"
-      @event="handleGoal"
+      @event="handlePlayerClick"
     />
   </div>
 
@@ -131,10 +131,13 @@ onUnmounted(() => {
   pb.collection('goal').unsubscribe();
 });
 
-async function handleGoal(event: { id: string; color: TeamColor; role: Role; action: Action }) {
+async function handlePlayerClick(event: { playerId: string; color: TeamColor; role: Role; action: Action }) {
   if (!currentRound.value || !match.value) return;
   if (!currentRound.value.start) return;
-  if (!!currentRound.value.end) return;
+  if (!!currentRound.value.end) {
+    router.push(`/player/${event.playerId}`);
+    return;
+  };
 
   const newScore = currentRound.value[event.color].score + 1;
   const end = newScore === 5 ? new Date().toISOString() : undefined;
@@ -167,7 +170,7 @@ async function handleGoal(event: { id: string; color: TeamColor; role: Role; act
   await safe(() =>
     pb.collection('goal').create({
       match: props.matchId,
-      user: event.id,
+      user: event.playerId,
       team: event.color,
       role: event.role,
       action: event.action,

@@ -127,6 +127,7 @@ import { baseUrl, pb } from '@/lib/pb';
 
 const props = defineProps<{
   match: MatchDto;
+  contextUserId?: string
 }>();
 
 const router = useRouter();
@@ -171,7 +172,7 @@ function getTeamScore(): string {
 
 function getMatchOutcomeColor(): string {
   if (inProgress.value) return '';
-  const userId = pb.authStore.record?.id;
+  const userId = props.contextUserId || pb.authStore.record?.id;
   if (!userId) return '';
 
   const team1Ids = props.match.expand?.team1?.map((u: UserDto) => u.id) || [];
